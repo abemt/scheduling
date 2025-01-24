@@ -332,57 +332,30 @@ Class Action {
 	}
 	function save_schedule(){
 		extract($_POST);
-	
-		// Use prepared statements to avoid SQL injection
-		// Collision detection query with proper checking and excluding current schedule if updating
-$check_collision = $this->db->query(
-    "SELECT * FROM schedules 
-     WHERE room_id = '$room_id' 
-     AND (
-         (time_from < '$time_to' AND time_to > '$time_from') 
-         OR (is_repeating = 1 AND repeating_data IS NOT NULL)
-     )
-     " . (isset($id) && !empty($id) ? "AND id != '$id'" : "")
-);
-
-if ($check_collision->num_rows > 0) {
-    echo json_encode(["status" => "error", "message" => "Room is already booked for the selected time."]);
-    exit;
-}
-
-	
-		// Prepare data for insertion
 		$data = " faculty_id = '$faculty_id' ";
 		$data .= ", title = '$title' ";
 		$data .= ", schedule_type = '$schedule_type' ";
 		$data .= ", description = '$description' ";
-		$data .= ", room_id = '$room_id' ";
-	
-		if (isset($is_repeating)) {
+		$data .= ", location = '$location' ";
+		if(isset($is_repeating)){
 			$data .= ", is_repeating = '$is_repeating' ";
-			$rdata = array(
-				'dow' => implode(',', $dow),
-				'start' => $month_from . '-01',
-				'end' => date('Y-m-d', strtotime($month_to . '-01 +1 month - 1 day'))
-			);
-			$data .= ", repeating_data = '" . json_encode($rdata) . "' ";
+			$rdata = array('dow'=>implode(',', $dow),'start'=>$month_from.'-01','end'=>(date('Y-m-d',strtotime($month_to .'-01 +1 month - 1 day '))));
+			$data .= ", repeating_data = '".json_encode($rdata)."' ";
+		}else{
+			$data .= ", is_repeating = 0 ";
+			$data .= ", schedule_date = '$schedule_date' ";
 		}
-	
-		// Insert or update schedule
-		if (empty($id)) {
-			$save = $this->db->query("INSERT INTO schedules SET $data");
-		} else {
-			$save = $this->db->query("UPDATE schedules SET $data WHERE id = $id");
+		$data .= ", time_from = '$time_from' ";
+		$data .= ", time_to = '$time_to' ";
+
+		if(empty($id)){
+			$save = $this->db->query("INSERT INTO schedules set ".$data);
+		}else{
+			$save = $this->db->query("UPDATE schedules set ".$data." where id=".$id);
 		}
-	
-		if ($save) {
-			echo json_encode(["status" => "success"]);
-		} else {
-			echo json_encode(["status" => "error", "message" => "Failed to save schedule."]);
-		}
+		if($save)
+			return 1;
 	}
-	
-	
 	function delete_schedule(){
 		extract($_POST);
 		$delete = $this->db->query("DELETE FROM schedules where id = ".$id);
@@ -403,9 +376,8 @@ if ($check_collision->num_rows > 0) {
 			}
 			$data[] = $row;
 		}
-		return json_encode($data);
+			return json_encode($data);
 	}
-	
 	function delete_forum(){
 		extract($_POST);
 		$delete = $this->db->query("DELETE FROM forum_topics where id = ".$id);
