@@ -203,12 +203,6 @@ ALTER TABLE `faculty`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `schedules`
---
-ALTER TABLE `schedules`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `subjects`
 --
 ALTER TABLE `subjects`
