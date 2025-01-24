@@ -336,11 +336,10 @@ Class Action {
 		$data .= ", title = '$title' ";
 		$data .= ", schedule_type = '$schedule_type' ";
 		$data .= ", description = '$description' ";
-		$data .= ", room_id = '$room_id' "; // Ensure room_id is included in the data
-		
+		$data .= ", location = '$location' ";
 		if(isset($is_repeating)){
 			$data .= ", is_repeating = '$is_repeating' ";
-			$rdata = array('dow'=>implode(',', $dow), 'start'=>$month_from.'-01', 'end'=>(date('Y-m-d',strtotime($month_to .'-01 +1 month - 1 day '))));
+			$rdata = array('dow'=>implode(',', $dow),'start'=>$month_from.'-01','end'=>(date('Y-m-d',strtotime($month_to .'-01 +1 month - 1 day '))));
 			$data .= ", repeating_data = '".json_encode($rdata)."' ";
 		}else{
 			$data .= ", is_repeating = 0 ";
@@ -348,86 +347,15 @@ Class Action {
 		}
 		$data .= ", time_from = '$time_from' ";
 		$data .= ", time_to = '$time_to' ";
-	
-		// Collision check
-		if(isset($is_repeating)) {
-			$collision_check = $this->db->query("SELECT * FROM schedules WHERE room_id = '$room_id' AND is_repeating = 1 
-				AND (
-					(JSON_CONTAINS(repeating_data->'$.dow', JSON_QUOTE('$dow[0]')) AND (
-						('$time_from' BETWEEN time_from AND time_to) OR ('$time_to' BETWEEN time_from AND time_to)
-					))
-				)
-			");
-		} else {
-			$collision_check = $this->db->query("SELECT * FROM schedules WHERE room_id = '$room_id' AND is_repeating = 0 
-				AND schedule_date = '$schedule_date' 
-				AND (
-					('$time_from' BETWEEN time_from AND time_to) OR ('$time_to' BETWEEN time_from AND time_to)
-				)
-			");
-		}
-	
-		if($collision_check->num_rows > 0) {
-			return json_encode(['status' => 'error', 'message' => 'Schedule conflict detected.']);
-		}
-	
-		// Save schedule
+
 		if(empty($id)){
 			$save = $this->db->query("INSERT INTO schedules set ".$data);
 		}else{
 			$save = $this->db->query("UPDATE schedules set ".$data." where id=".$id);
 		}
 		if($save)
-			return json_encode(['status' => 'success']);
-		else
-			return json_encode(['status' => 'error', 'message' => 'Failed to save schedule.']);
+			return 1;
 	}
-	public function search_schedule() {
-		include 'db_connect.php';
-	
-		// Safely extract search parameters
-		$course_id = isset($_POST['course_id']) ? $_POST['course_id'] : '';
-		$faculty_id = isset($_POST['faculty_id']) ? $_POST['faculty_id'] : '';
-		$room_id = isset($_POST['room_id']) ? $_POST['room_id'] : '';
-	
-		$where = [];
-		if (!empty($course_id)) {
-			$where[] = "s.course_id = " . intval($course_id);
-		}
-		if (!empty($faculty_id)) {
-			$where[] = "s.faculty_id = " . intval($faculty_id);
-		}
-		if (!empty($room_id)) {
-			$where[] = "s.room_id = " . intval($room_id);
-		}
-	
-		$where_clause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
-	
-		$query = "SELECT s.*, 
-						 f.lastname, f.firstname, 
-						 r.name as room_name, 
-						 c.course as course_name, 
-						 sub.subject as subject_name 
-				  FROM schedules s
-				  LEFT JOIN faculty f ON s.faculty_id = f.id
-				  LEFT JOIN rooms r ON s.room_id = r.id
-				  LEFT JOIN courses c ON s.course_id = c.id
-				  LEFT JOIN subjects sub ON s.subject_id = sub.id
-				  $where_clause";
-	
-		$result = $conn->query($query);
-		if (!$result) {
-			return json_encode(['status' => 'error', 'message' => $conn->error]);
-		}
-	
-		$data = [];
-		while ($row = $result->fetch_assoc()) {
-			$data[] = $row;
-		}
-	
-		return json_encode(['status' => 'success', 'data' => $data]);
-	}
-	
 	function delete_schedule(){
 		extract($_POST);
 		$delete = $this->db->query("DELETE FROM schedules where id = ".$id);
