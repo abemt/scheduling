@@ -94,21 +94,22 @@ CREATE TABLE `schedules` (
   `title` varchar(200) NOT NULL,
   `schedule_type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1= class, 2= meeting,3=others',
   `description` text NOT NULL,
-  `location` text NOT NULL,
+  `room_id` int(30) NOT NULL,
   `is_repeating` tinyint(1) NOT NULL DEFAULT 1,
   `repeating_data` text NOT NULL,
   `schedule_date` date NOT NULL,
   `time_from` time NOT NULL,
   `time_to` time NOT NULL,
-  `date_created` datetime NOT NULL DEFAULT current_timestamp()
+  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
+  FOREIGN KEY (`room_id`) REFERENCES `rooms`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `schedules`
 --
 
-INSERT INTO `schedules` (`id`, `faculty_id`, `title`, `schedule_type`, `description`, `location`, `is_repeating`, `repeating_data`, `schedule_date`, `time_from`, `time_to`, `date_created`) VALUES
-(3, 2, 'Class 101 (M & Th)', 1, 'Sample Only', 'Online', 1, '{\"dow\":\"1,4\",\"start\":\"2020-10-01\",\"end\":\"2020-11-30\"}', '0000-00-00', '09:00:00', '12:00:00', '2020-10-20 15:51:01');
+INSERT INTO `schedules` (`id`, `faculty_id`, `title`, `schedule_type`, `description`, `room_id`, `is_repeating`, `repeating_data`, `schedule_date`, `time_from`, `time_to`, `date_created`) VALUES
+(3, 2, 'Class 101 (M & Th)', 1, 'Sample Only', 1, 1, '{\"dow\":\"1,4\",\"start\":\"2020-10-01\",\"end\":\"2020-11-30\"}', '0000-00-00', '09:00:00', '12:00:00', '2020-10-20 15:51:01');
 
 -- --------------------------------------------------------
 
@@ -154,6 +155,30 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `name`, `username`, `password`, `type`) VALUES
 (1, 'Administrator', 'admin', '0192023a7bbd73250516f069df18b500', 1);
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rooms`
+--
+
+CREATE TABLE `rooms` (
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `room_name` varchar(200) NOT NULL,
+  `room_type` enum('Hall','Room') NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `rooms`
+--
+
+INSERT INTO `rooms` (`room_name`, `room_type`) VALUES
+('Main Hall', 'Hall'),
+('Conference Hall', 'Hall'),
+('Exhibition Hall', 'Hall'),
+('Room 101', 'Room'),
+('Room 102', 'Room');
+
 --
 -- Indexes for dumped tables
 --
@@ -192,6 +217,12 @@ ALTER TABLE `subjects`
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `rooms`
+--
+ALTER TABLE `rooms`
   ADD PRIMARY KEY (`id`);
 
 --

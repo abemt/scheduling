@@ -330,8 +330,8 @@ Class Action {
 			return 1;
 		}
 	}
-	function check_schedule_conflict($location, $time_from, $time_to, $schedule_date = null, $repeating_data = null, $schedule_id = null) {
-        $where = " location = '$location' ";
+	function check_schedule_conflict($room_id, $time_from, $time_to, $schedule_date = null, $repeating_data = null, $schedule_id = null) {
+        $where = " room_id = '$room_id' ";
         if($schedule_id)
             $where .= " AND id != $schedule_id ";
             
@@ -346,12 +346,15 @@ Class Action {
             )";
         }
         
-        $query = $this->db->query("SELECT * FROM schedules WHERE $where AND (
-            ('$time_from' BETWEEN time_from AND time_to) OR
-            ('$time_to' BETWEEN time_from AND time_to) OR
-            (time_from BETWEEN '$time_from' AND '$time_to') OR
-            (time_to BETWEEN '$time_from' AND '$time_to')
-        )");
+        $query = $this->db->query("SELECT s.*, r.room_name 
+            FROM schedules s 
+            INNER JOIN rooms r ON s.room_id = r.id 
+            WHERE $where AND (
+                ('$time_from' BETWEEN time_from AND time_to) OR
+                ('$time_to' BETWEEN time_from AND time_to) OR
+                (time_from BETWEEN '$time_from' AND '$time_to') OR
+                (time_to BETWEEN '$time_from' AND '$time_to')
+            )");
         
         return $query->num_rows > 0;
     }
@@ -362,7 +365,7 @@ Class Action {
         $data .= ", title = '$title' ";
         $data .= ", schedule_type = '$schedule_type' ";
         $data .= ", description = '$description' ";
-        $data .= ", location = '$location' ";
+        $data .= ", room_id = '$room_id' ";
         
         // Check for schedule conflicts
         $repeating_json = null;
@@ -372,14 +375,14 @@ Class Action {
             $repeating_json = json_encode($rdata);
             $data .= ", repeating_data = '".$repeating_json."' ";
             
-            if($this->check_schedule_conflict($location, $time_from, $time_to, null, $repeating_json, $id ?? null)) {
+            if($this->check_schedule_conflict($room_id, $time_from, $time_to, null, $repeating_json, $id ?? null)) {
                 return 2; // Collision detected
             }
         } else {
             $data .= ", is_repeating = 0 ";
             $data .= ", schedule_date = '$schedule_date' ";
             
-            if($this->check_schedule_conflict($location, $time_from, $time_to, $schedule_date, null, $id ?? null)) {
+            if($this->check_schedule_conflict($room_id, $time_from, $time_to, $schedule_date, null, $id ?? null)) {
                 return 2; // Collision detected
             }
         }

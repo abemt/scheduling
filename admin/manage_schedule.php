@@ -58,6 +58,20 @@ $rdata= json_decode($repeating_data);
 						<textarea class="form-control" name="location" cols="30" rows="3"><?php echo isset($location) ? $location : '' ?></textarea>
 					</div>
 					<div class="form-group">
+						<label for="" class="control-label">Room</label>
+						<select name="room_id" id="room_id" class="custom-select select2" required>
+							<option value="">Select Room</option>
+							<?php 
+							$rooms = $conn->query("SELECT * FROM rooms ORDER BY room_type, room_name");
+							while($row = $rooms->fetch_array()):
+							?>
+							<option value="<?php echo $row['id'] ?>" <?php echo isset($room_id) && $room_id == $row['id'] ? 'selected' : '' ?>>
+								<?php echo "[".ucwords($row['room_type'])."] ".$row['room_name'] ?>
+							</option>
+							<?php endwhile; ?>
+						</select>
+					</div>
+					<div class="form-group">
 						<div class="form-check">
 						  <input class="form-check-input" type="checkbox" value="1" id="is_repeating" name="is_repeating" <?php echo isset($is_repeating) && $is_repeating != 1 ? '' : 'checked' ?>>
 						  <label class="form-check-label" for="type">
@@ -149,10 +163,19 @@ $rdata= json_decode($repeating_data);
 					},1500)
 
 				}else if(resp==2){
-					alert_toast("Schedule conflict detected! The location is already booked for the selected time period.",'error')
+					Swal.fire({
+						icon: 'error',
+						title: 'Schedule Conflict',
+						text: 'The selected room is already booked for this time period!',
+						confirmButtonText: 'OK'
+					});
 					end_load()
 				}
-				
+			},
+			error:function(err){
+				console.log(err)
+				alert_toast("An error occurred",'error')
+				end_load()
 			}
 		})
 	})

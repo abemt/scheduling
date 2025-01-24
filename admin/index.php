@@ -8,6 +8,7 @@
 
   <title>School Faculty Scheduling System</title>
  	
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <?php
   if(!isset($_SESSION['login_id']))
