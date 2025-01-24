@@ -148,6 +148,9 @@ $rdata= json_decode($repeating_data);
 						location.reload()
 					},1500)
 
+				}else if(resp==2){
+					alert_toast("Schedule conflict detected! The location is already booked for the selected time period.",'error')
+					end_load()
 				}
 				
 			}

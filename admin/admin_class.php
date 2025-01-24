@@ -330,32 +330,71 @@ Class Action {
 			return 1;
 		}
 	}
-	function save_schedule(){
-		extract($_POST);
-		$data = " faculty_id = '$faculty_id' ";
-		$data .= ", title = '$title' ";
-		$data .= ", schedule_type = '$schedule_type' ";
-		$data .= ", description = '$description' ";
-		$data .= ", location = '$location' ";
-		if(isset($is_repeating)){
-			$data .= ", is_repeating = '$is_repeating' ";
-			$rdata = array('dow'=>implode(',', $dow),'start'=>$month_from.'-01','end'=>(date('Y-m-d',strtotime($month_to .'-01 +1 month - 1 day '))));
-			$data .= ", repeating_data = '".json_encode($rdata)."' ";
-		}else{
-			$data .= ", is_repeating = 0 ";
-			$data .= ", schedule_date = '$schedule_date' ";
-		}
-		$data .= ", time_from = '$time_from' ";
-		$data .= ", time_to = '$time_to' ";
+	function check_schedule_conflict($location, $time_from, $time_to, $schedule_date = null, $repeating_data = null, $schedule_id = null) {
+        $where = " location = '$location' ";
+        if($schedule_id)
+            $where .= " AND id != $schedule_id ";
+            
+        if($schedule_date){
+            $where .= " AND schedule_date = '$schedule_date' AND is_repeating = 0 ";
+        } else if($repeating_data) {
+            $rdata = json_decode($repeating_data, true);
+            $where .= " AND is_repeating = 1 AND (
+                JSON_EXTRACT(repeating_data, '$.start') <= '{$rdata['end']}' AND 
+                JSON_EXTRACT(repeating_data, '$.end') >= '{$rdata['start']}' AND 
+                JSON_EXTRACT(repeating_data, '$.dow') REGEXP '[".$rdata['dow']."]'
+            )";
+        }
+        
+        $query = $this->db->query("SELECT * FROM schedules WHERE $where AND (
+            ('$time_from' BETWEEN time_from AND time_to) OR
+            ('$time_to' BETWEEN time_from AND time_to) OR
+            (time_from BETWEEN '$time_from' AND '$time_to') OR
+            (time_to BETWEEN '$time_from' AND '$time_to')
+        )");
+        
+        return $query->num_rows > 0;
+    }
 
-		if(empty($id)){
-			$save = $this->db->query("INSERT INTO schedules set ".$data);
-		}else{
-			$save = $this->db->query("UPDATE schedules set ".$data." where id=".$id);
-		}
-		if($save)
-			return 1;
-	}
+    function save_schedule(){
+        extract($_POST);
+        $data = " faculty_id = '$faculty_id' ";
+        $data .= ", title = '$title' ";
+        $data .= ", schedule_type = '$schedule_type' ";
+        $data .= ", description = '$description' ";
+        $data .= ", location = '$location' ";
+        
+        // Check for schedule conflicts
+        $repeating_json = null;
+        if(isset($is_repeating)){
+            $data .= ", is_repeating = '$is_repeating' ";
+            $rdata = array('dow'=>implode(',', $dow),'start'=>$month_from.'-01','end'=>(date('Y-m-d',strtotime($month_to .'-01 +1 month - 1 day '))));
+            $repeating_json = json_encode($rdata);
+            $data .= ", repeating_data = '".$repeating_json."' ";
+            
+            if($this->check_schedule_conflict($location, $time_from, $time_to, null, $repeating_json, $id ?? null)) {
+                return 2; // Collision detected
+            }
+        } else {
+            $data .= ", is_repeating = 0 ";
+            $data .= ", schedule_date = '$schedule_date' ";
+            
+            if($this->check_schedule_conflict($location, $time_from, $time_to, $schedule_date, null, $id ?? null)) {
+                return 2; // Collision detected
+            }
+        }
+        
+        $data .= ", time_from = '$time_from' ";
+        $data .= ", time_to = '$time_to' ";
+
+        if(empty($id)){
+            $save = $this->db->query("INSERT INTO schedules set ".$data);
+        }else{
+            $save = $this->db->query("UPDATE schedules set ".$data." where id=".$id);
+        }
+        if($save)
+            return 1;
+    }
 	function delete_schedule(){
 		extract($_POST);
 		$delete = $this->db->query("DELETE FROM schedules where id = ".$id);
