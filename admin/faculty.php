@@ -11,7 +11,7 @@
   -o-transform: scale(1.5); /* Opera */
   transform: scale(1.5);
   padding: 10px;
-
+}
 </style>
 	<div class="col-lg-12">
 		<div class="row mb-4 mt-4">
