@@ -30,7 +30,7 @@ $rdata= json_decode($repeating_data);
 						<select name="faculty_id" id="" class="custom-select select2">
 							<option value="0">All</option>
 						<?php 
-							$faculty = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM faculty order by concat(lastname,', ',firstname,' ',middlename) asc");
+							$faculty = $conn->query("SELECT *, concat(firstname,' ',lastname) as name FROM faculty order by concat(firstname,' ',lastname) asc");
 							while($row= $faculty->fetch_array()):
 						?>
 							<option value="<?php echo $row['id'] ?>" <?php echo isset($faculty_id) && $faculty_id == $row['id'] ? 'selected' : '' ?>><?php echo ucwords($row['name']) ?></option>
@@ -52,10 +52,6 @@ $rdata= json_decode($repeating_data);
 					<div class="form-group">
 						<label for="" class="control-label">Description</label>
 						<textarea class="form-control" name="description" cols="30" rows="3"><?php echo isset($description) ? $description : '' ?></textarea>
-					</div>
-					<div class="form-group">
-						<label for="" class="control-label">Location</label>
-						<textarea class="form-control" name="location" cols="30" rows="3"><?php echo isset($location) ? $location : '' ?></textarea>
 					</div>
 					<div class="form-group">
 						<label for="" class="control-label">Room</label>

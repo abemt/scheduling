@@ -23,7 +23,7 @@
 							<select name="faculty_id" id="faculty_id" class="custom-select select2">
 								<option value=""></option>
 							<?php 
-								$faculty = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM faculty order by concat(lastname,', ',firstname,' ',middlename) asc");
+								$faculty = $conn->query("SELECT *, concat(firstname,' ',lastname) as name FROM faculty order by concat(firstname,' ',lastname) asc");
 								while($row= $faculty->fetch_array()):
 							?>
 								<option value="<?php echo $row['id'] ?>"><?php echo ucwords($row['name']) ?></option>
@@ -51,7 +51,7 @@
 	}
 	img{
 		max-width:100px;
-		max-height: :150px;
+		max-height: 150px;
 	}
 	.avatar {
 	    display: flex;

@@ -39,7 +39,7 @@ Class Action {
 	function login_faculty(){
 		
 		extract($_POST);		
-		$qry = $this->db->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM faculty where id_no = '".$id_no."' ");
+		$qry = $this->db->query("SELECT *, concat(firstname,' ',lastname) as name FROM faculty where id_no = '".$id_no."' ");
 		if($qry->num_rows > 0){
 			foreach ($qry->fetch_array() as $key => $value) {
 				if($key != 'password' && !is_numeric($key))
