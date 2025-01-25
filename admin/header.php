@@ -1,5 +1,5 @@
-<meta content="" name="descriptison">
-<meta content="" name="keywords">
+<meta charset="utf-8">
+<meta content="Faculty Scheduling System" name="description">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <!-- Google Fonts -->
@@ -104,10 +104,6 @@
     
     .select2-container {
         width: 100% !important;
-    }
-    
-    .table-responsive {
-        overflow-x: auto;
     }
     
     .modal-dialog {

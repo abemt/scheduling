@@ -39,10 +39,29 @@
     border: none;
     border-radius: 8px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
 }
 
 .card-body {
     padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .row {
+        margin: 0;
+    }
+    
+    .card {
+        margin-bottom: 15px;
+    }
+    
+    .col-lg-12 {
+        padding: 0 10px;
+    }
 }
 </style>
 

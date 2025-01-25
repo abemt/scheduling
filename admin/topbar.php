@@ -3,6 +3,7 @@
   padding: 0.5rem 1rem;
   background: #2783d0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  height: 60px; /* Fixed height */
 }
 
 .navbar-container {
@@ -131,10 +132,12 @@
 
   .navbar {
     padding: 0.3rem;
+    height: 50px; /* Smaller height on mobile */
+    padding: 0.3rem 0.5rem;
   }
 
   .brand-section {
-    margin-left: 50px; /* Make room for sidebar toggle */
+    margin-left: 60px; /* Increased space for sidebar toggle */
   }
 
   .logo-container {
@@ -148,6 +151,10 @@
 
   .system-name {
     font-size: 0.9rem;
+    max-width: 200px; /* Prevent text overflow */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .sub-title, 

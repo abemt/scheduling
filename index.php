@@ -58,6 +58,51 @@
     max-width: calc(100%);
   }
 
+#calendar {
+    width: 100%;
+    background: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+@media (max-width: 768px) {
+    #calendar {
+        padding: 0.5rem;
+    }
+
+    .fc .fc-toolbar {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.2em;
+        margin: 0;
+    }
+
+    .fc-header-toolbar {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .fc-button {
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    .fc-view {
+        font-size: 0.8rem;
+    }
+
+    .container {
+        padding: 0.5rem !important;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+        border-radius: 0;
+    }
+}
 </style>
 
 <body>
@@ -255,9 +300,9 @@ window._conf = function($msg='',$func='',$params = []){
 		 		}
 		 				  calendar = new FullCalendar.Calendar(calendarEl, {
 				          headerToolbar: {
-				            left: 'prev,next today',
+				            left: window.innerWidth < 768 ? 'prev,next' : 'prev,next today',
 				            center: 'title',
-				            right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+				            right: window.innerWidth < 768 ? 'dayGridMonth,timeGridWeek' : 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
 				          },
 				          initialDate: '<?php echo date('Y-m-d') ?>',
 				          weekNumbers: true,
@@ -271,7 +316,12 @@ window._conf = function($msg='',$func='',$params = []){
 							   var data =  e.event.extendedProps;
 								uni_modal('View Schedule Details','view_schedule.php?id='+data.data_id,'mid-large')
 
-							  }
+							  },
+                          height: 'auto',
+                          contentHeight: 'auto',
+                          aspectRatio: 1.8,
+                          handleWindowResize: true,
+                          windowResizeDelay: 200
 				        });
 		 	}
 		 	},complete:function(){
@@ -279,6 +329,15 @@ window._conf = function($msg='',$func='',$params = []){
 		 		end_load()
 		 	}
 		 })
+
+         window.addEventListener('resize', function() {
+            calendar.setOption('headerToolbar', {
+                left: window.innerWidth < 768 ? 'prev,next' : 'prev,next today',
+                center: 'title',
+                right: window.innerWidth < 768 ? 'dayGridMonth,timeGridWeek' : 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+            });
+            calendar.updateSize();
+        });
 		 })
 </script>	
 </html>

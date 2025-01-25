@@ -4,9 +4,9 @@
 	}
 	nav#sidebar {
 		background: #222d32 !important;
-		margin-top: 0;  /* Changed from 60px to 0 */
-		padding-top: 1rem;
-		min-height: 100vh;  /* Changed from calc(100vh - 60px) to 100vh */
+		margin-top: 0;
+		padding-top: 60px;  /* Increased padding to prevent overlap */
+		min-height: 100vh;
 		box-shadow: 2px 0 5px rgba(0,0,0,0.2);
 		position: fixed;
 		left: 0;
@@ -14,12 +14,14 @@
 		height: 100%;
 		transition: all 0.3s ease;
 		z-index: 1040;
+		overflow-x: hidden; /* Prevent text overflow */
 	}
 
 	.sidebar-list {
-		margin-top: 60px; /* Added to offset the fixed topbar */
+		margin-top: 0; /* Remove top margin since we added padding to sidebar */
 		padding: 0;
-		padding-top: 70px;
+		padding-top: 5px; /* Reduced from 10px to 5px */
+		width: 100%; /* Ensure full width */
 	}
 
 	.sidebar-list a {
@@ -33,6 +35,10 @@
 		border-left: 4px solid transparent;
 		font-weight: 500;
 		background: #222d32;
+		white-space: nowrap; /* Prevent text wrapping */
+		overflow: hidden; /* Hide overflow text */
+		text-overflow: ellipsis; /* Add ellipsis for overflow text */
+		width: 100%; /* Ensure full width */
 	}
 
 	.sidebar-list a:hover, .sidebar-list a.active {
@@ -50,24 +56,27 @@
 		nav#sidebar {
 			margin-top: 0;
 			width: 60px;
-			transform: translateX(-60px);
+			transform: translateX(-100%); /* Change from -60px to -100% */
+			padding-top: 50px; /* Reduced padding for mobile */
 		}
 		
 		nav#sidebar.active {
 			transform: translateX(0);
+			width: 200px; /* Wider when active on mobile */
 		}
 
-		.sidebar-list a span:not(.icon-field) {
-			display: none;
+		nav#sidebar.active .sidebar-list a span:not(.icon-field) {
+			display: inline; /* Show text when sidebar is active */
 		}
 
 		.sidebar-list a {
-			padding: 8px 5px;
-			justify-content: center;
+			padding: 10px 15px;
+			justify-content: flex-start; /* Align to left */
 		}
 
 		.icon-field {
-			margin: 0;
+			width: 20px;
+			margin-right: 10px;
 		}
 
 		#content {
@@ -80,7 +89,7 @@
 		}
 
 		.sidebar-list {
-			padding-top: 60px;
+			padding-top: 10px; /* Reduced from 20px to 10px */
 		}
 
 		#sidebarCollapse {
@@ -137,5 +146,27 @@
 	// Add mobile sidebar toggle
 	$('#sidebarCollapse').click(function() {
 		$('#sidebar').toggleClass('active');
+	});
+
+	// Improve mobile sidebar behavior
+	$(document).ready(function() {
+		// Close sidebar when clicking outside
+		$(document).click(function(e) {
+			if (!$(e.target).closest('#sidebar, #sidebarCollapse').length) {
+				$('#sidebar').removeClass('active');
+			}
+		});
+
+		// Prevent clicks inside sidebar from closing it
+		$('#sidebar').click(function(e) {
+			e.stopPropagation();
+		});
+
+		// Close sidebar when menu item is clicked on mobile
+		if($(window).width() <= 768) {
+			$('.nav-item').click(function() {
+				$('#sidebar').removeClass('active');
+			});
+		}
 	});
 </script>
