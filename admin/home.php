@@ -4,7 +4,8 @@
     font-size: 3rem;
     position: absolute;
     right: 1rem;
-    color: #ffffff96;
+    color: #2783d0;
+    opacity: 0.3;
 }
 .imgs{
 		margin: .5em;
@@ -34,6 +35,15 @@
 		max-height: calc(100%)!important;
 		max-width: calc(100%)!important;
 	}
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
 </style>
 
 <div class="containe-fluid">
