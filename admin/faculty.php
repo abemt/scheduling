@@ -13,8 +13,6 @@
   padding: 10px;
 }
 
-// ...existing code...
-
 @media (max-width: 768px) {
     .btn-sm {
         padding: 0.2rem 0.4rem;

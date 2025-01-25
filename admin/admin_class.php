@@ -392,12 +392,101 @@ Class Action {
 
         if(empty($id)){
             $save = $this->db->query("INSERT INTO schedules set ".$data);
+            $schedule_id = $this->db->insert_id;
         }else{
             $save = $this->db->query("UPDATE schedules set ".$data." where id=".$id);
+            $schedule_id = $id;
         }
-        if($save)
+        
+        if($save){
+            // Save course and subject information
+            $this->db->query("DELETE FROM class_schedule_info WHERE schedule_id = $schedule_id");
+            $class_data = "INSERT INTO class_schedule_info (schedule_id, course_id, subject_id) VALUES ($schedule_id, '$course_id', '$subject_id')";
+            $this->db->query($class_data);
             return 1;
+        }
     }
+
+    function filter_schedules(){
+        extract($_POST);
+        $where = [];
+        
+        // Build where conditions
+        if(!empty($course_id)) {
+            $where[] = "csi.course_id = '$course_id'";
+        }
+        if(!empty($subject_id)) {
+            $where[] = "csi.subject_id = '$subject_id'";
+        }
+        if(!empty($faculty_id)) {
+            $where[] = "s.faculty_id = '$faculty_id'";
+        }
+        if(!empty($room_id)) {
+            $where[] = "s.room_id = '$room_id'";
+        }
+
+        // Construct WHERE clause
+        $where_clause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+
+        $sql = "SELECT DISTINCT s.*, 
+            f.firstname, f.lastname,
+            c.course,
+            sub.subject as subject_name,
+            r.room_name, r.room_type,
+            csi.course_id, csi.subject_id
+            FROM schedules s 
+            LEFT JOIN faculty f ON s.faculty_id = f.id
+            LEFT JOIN rooms r ON s.room_id = r.id 
+            LEFT JOIN class_schedule_info csi ON s.id = csi.schedule_id
+            LEFT JOIN courses c ON csi.course_id = c.id
+            LEFT JOIN subjects sub ON csi.subject_id = sub.id
+            $where_clause";
+
+        // For debugging
+        // error_log("SQL Query: " . $sql);
+            
+        $qry = $this->db->query($sql);
+        
+        if(!$qry) {
+            // Log error for debugging
+            error_log("MySQL Error: " . $this->db->error);
+            return array(); // Return empty array if query fails
+        }
+
+        $data = array();
+        while($row = $qry->fetch_assoc()){
+            $schedule = array();
+            $schedule['id'] = $row['id'];
+            
+            // Format title to include course and subject
+            $title = $row['title'];
+            if(!empty($row['course'])) $title .= " (" . $row['course'] . ")";
+            if(!empty($row['subject_name'])) $title .= " - " . $row['subject_name'];
+            
+            $schedule['title'] = $title;
+            $schedule['location'] = $row['room_name'];
+            $schedule['description'] = $row['description'];
+            
+            if($row['is_repeating'] == 1){
+                $rdata = json_decode($row['repeating_data'], true);
+                if($rdata) {
+                    $schedule['daysOfWeek'] = explode(',', $rdata['dow']);
+                    $schedule['startTime'] = $row['time_from'];
+                    $schedule['endTime'] = $row['time_to'];
+                    $schedule['startRecur'] = $rdata['start'];
+                    $schedule['endRecur'] = $rdata['end'];
+                }
+            } else {
+                $schedule['start'] = $row['schedule_date'] . 'T' . $row['time_from'];
+                $schedule['end'] = $row['schedule_date'] . 'T' . $row['time_to'];
+            }
+            
+            $data[] = $schedule;
+        }
+        
+        return $data;
+    }
+
 	function delete_schedule(){
 		extract($_POST);
 		$delete = $this->db->query("DELETE FROM schedules where id = ".$id);
@@ -486,72 +575,4 @@ Class Action {
 			return 1;
 
 	}
-	function filter_schedules(){
-    extract($_POST);
-    $where = [];
-    
-    if(!empty($course_id)) {
-        $where[] = "csi.course_id = '$course_id'";
-    }
-    if(!empty($subject_id)) {
-        $where[] = "csi.subject = '$subject_id'";
-    }
-    if(!empty($faculty_id)) {
-        $where[] = "s.faculty_id = '$faculty_id'";
-    }
-    if(!empty($room_id)) {
-        $where[] = "s.room_id = '$room_id'";
-    }
-    
-    $condition = count($where) ? " WHERE " . implode(" AND ", $where) : "";
-
-    $data = array();
-    $qry = $this->db->query("SELECT s.*, 
-        f.firstname, f.lastname,
-        c.course,
-        sub.subject as subject_name,
-        r.room_name, r.room_type
-        FROM schedules s 
-        LEFT JOIN class_schedule_info csi ON s.id = csi.schedule_id
-        LEFT JOIN faculty f ON s.faculty_id = f.id
-        LEFT JOIN courses c ON csi.course_id = c.id
-        LEFT JOIN subjects sub ON csi.subject = sub.id
-        LEFT JOIN rooms r ON s.room_id = r.id
-        $condition 
-        GROUP BY s.id");
-
-    while($row = $qry->fetch_assoc()){
-        $schedule = array();
-        $schedule['id'] = $row['id'];
-        
-        // Format title to include course and subject
-        $title = $row['title'];
-        if(!empty($row['course'])) $title .= " (" . $row['course'] . ")";
-        if(!empty($row['subject_name'])) $title .= " - " . $row['subject_name'];
-        
-        $schedule['title'] = $title;
-        
-        // Add location and description
-        $schedule['location'] = $row['room_name'];
-        $schedule['description'] = $row['description'];
-        
-        if($row['is_repeating'] == 1){
-            $rdata = json_decode($row['repeating_data'], true);
-            // Format for recurring events
-            $schedule['daysOfWeek'] = explode(',', $rdata['dow']);
-            $schedule['startTime'] = $row['time_from'];
-            $schedule['endTime'] = $row['time_to'];
-            $schedule['startRecur'] = $rdata['start'];
-            $schedule['endRecur'] = $rdata['end'];
-        } else {
-            // Format for single events
-            $schedule['start'] = $row['schedule_date'] . 'T' . $row['time_from'];
-            $schedule['end'] = $row['schedule_date'] . 'T' . $row['time_to'];
-        }
-        
-        $data[] = $schedule;
-    }
-    
-    return $data;
-}
 }
