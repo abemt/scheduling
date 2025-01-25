@@ -1,4 +1,17 @@
-<?php include 'db_connect.php' ?>
+<?php
+    if(!isset($_GET['id'])){
+        echo "No schedule selected";
+        exit;
+    }
+    include 'db_connect.php';
+    $id = $_GET['id'];
+    $qry = $conn->query("SELECT s.*, concat(f.firstname,' ',f.lastname) as faculty_name, r.room_name, r.room_type 
+        FROM schedules s 
+        LEFT JOIN faculty f ON s.faculty_id = f.id 
+        INNER JOIN rooms r ON s.room_id = r.id 
+        WHERE s.id=".$id)->fetch_array();
+?>
+
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-md-12">
@@ -80,18 +93,6 @@
         </div>
     </div>
 
-    <?php
-    if(isset($_GET['id'])){
-        $qry = $conn->query("SELECT s.*, concat(f.firstname,' ',f.lastname) as faculty_name, r.room_name, r.room_type 
-            FROM schedules s 
-            LEFT JOIN faculty f ON s.faculty_id = f.id 
-            INNER JOIN rooms r ON s.room_id = r.id 
-            WHERE s.id=".$_GET['id'])->fetch_array();
-        foreach($qry as $k =>$v){
-            $$k = $v;
-        }
-    }
-    ?>
     <div class="container-fluid">
         <p>Schedule for: <b><?php echo ucwords($title) ?></b></p>
         <p>Faculty: <b><?php echo $faculty_id == 0 ? "All" : ucwords($faculty_name) ?></b></p>
@@ -101,14 +102,18 @@
         <p>Time End: </i> <b><?php echo date('h:i A',strtotime("2020-01-01 ".$time_to)) ?></b></p>
         <hr class="divider">
     </div>
-    <div class="modal-footer display">
-        <div class="row">
-            <div class="col-md-12">
-                <button class="btn float-right btn-secondary" type="button" data-dismiss="modal">Close</button>
-                <button class="btn float-right btn-danger mr-2" type="button" id="delete_schedule">Delete</button>
-                <button class="btn float-right btn-primary mr-2" type="button" id="edit">Edit</button>
-            </div>
-        </div>
+    
+    <!-- Move the buttons outside the modal footer -->
+    <div class="action-buttons mt-2">
+        <button class="btn btn-primary" type="button" id="edit" onclick="editSchedule(<?php echo $id ?>)">
+            <i class="fa fa-edit"></i> Edit
+        </button>
+        <button class="btn btn-danger" type="button" id="delete_schedule" data-id="<?php echo $id ?>">
+            <i class="fa fa-trash"></i> Delete
+        </button>
+        <button class="btn btn-secondary" type="button" onclick="closeModal()">
+            <i class="fa fa-times"></i> Close
+        </button>
     </div>
 </div>
 
@@ -120,7 +125,8 @@
         display: none;
     }
     #uni_modal .modal-footer.display {
-        display: block;
+        display: flex !important;
+        justify-content: flex-end;
     }
     .select2-container {
         width: 100% !important;
@@ -141,33 +147,51 @@
     .btn i {
         margin-right: 0.5rem;
     }
+    .action-buttons {
+        padding: 10px;
+        text-align: right;
+        border-top: 1px solid #dee2e6;
+        background: #f8f9fa;
+        position: sticky;
+        bottom: 0;
+    }
+    .btn {
+        margin-left: 5px;
+    }
 </style>
 
 <script>
-    $('#edit').click(function(){
-        uni_modal('Edit Schedule','manage_schedule.php?id=<?php echo $id ?>','mid-large')
-    })
-    $('#delete_schedule').click(function(){
-        _conf("Are you sure to delete this schedule?","delete_schedule",[$(this).attr('data-id')])
-    })
-    
-    function delete_schedule($id){
-        start_load()
-        $.ajax({
-            url:'ajax.php?action=delete_schedule',
-            method:'POST',
-            data:{id:$id},
-            success:function(resp){
-                if(resp==1){
-                    alert_toast("Data successfully deleted",'success')
-                    setTimeout(function(){
-                        location.reload()
-                    },1500)
+function editSchedule(id) {
+    uni_modal('Edit Schedule','manage_schedule.php?id=' + id,'mid-large');
+}
 
-                }
+function closeModal() {
+    $('#uni_modal').modal('hide');
+}
+
+$(document).ready(function(){
+    $('#delete_schedule').click(function(){
+        var id = $(this).attr('data-id');
+        _conf("Are you sure to delete this schedule?","delete_schedule",[id]);
+    });
+});
+
+function delete_schedule(id){
+    start_load()
+    $.ajax({
+        url:'ajax.php?action=delete_schedule',
+        method:'POST',
+        data:{id:id},
+        success:function(resp){
+            if(resp==1){
+                alert_toast("Schedule successfully deleted",'success')
+                setTimeout(function(){
+                    location.reload()
+                },1500)
             }
-        })
-    }
+        }
+    })
+}
 
     $(document).ready(function(){
         // Initialize select2
