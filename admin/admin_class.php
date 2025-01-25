@@ -575,4 +575,73 @@ Class Action {
 			return 1;
 
 	}
+
+	function check_free_rooms(){
+	    extract($_POST);
+	    
+	    $where = [];
+	    $params = [];
+	    
+	    // Base query for rooms
+	    $sql = "SELECT DISTINCT r.* 
+	            FROM rooms r 
+	            WHERE r.id NOT IN (
+	                SELECT s.room_id 
+	                FROM schedules s 
+	                WHERE 1=1";
+
+	    // Handle repeating schedules
+	    if(isset($is_repeating) && $is_repeating == 1) {
+	        if(!empty($dow) && !empty($date_from) && !empty($date_to)) {
+	            $sql .= " AND (
+	                (s.is_repeating = 1 AND 
+	                JSON_EXTRACT(s.repeating_data, '$.start') <= ? AND 
+	                JSON_EXTRACT(s.repeating_data, '$.end') >= ? AND 
+	                JSON_EXTRACT(s.repeating_data, '$.dow') REGEXP ?)";
+	            $params[] = $date_to;
+	            $params[] = $date_from;
+	            $params[] = implode('|', $dow);
+	        }
+	    } else {
+	        // Handle single-day schedules
+	        if(!empty($date)) {
+	            $sql .= " AND (s.is_repeating = 0 AND s.schedule_date = ?)";
+	            $params[] = $date;
+	        }
+	    }
+
+	    // Time conflict check
+	    if(!empty($time_from) && !empty($time_to)) {
+	        $sql .= " AND (
+	            (? BETWEEN s.time_from AND s.time_to) OR
+	            (? BETWEEN s.time_from AND s.time_to) OR
+	            (s.time_from BETWEEN ? AND ?) OR
+	            (s.time_to BETWEEN ? AND ?)
+	        )";
+	        $params = array_merge($params, [$time_from, $time_to, $time_from, $time_to, $time_from, $time_to]);
+	    }
+
+	    $sql .= ")";
+	    $sql .= " ORDER BY r.room_type, r.room_name";
+
+	    // Prepare and execute statement
+	    $stmt = $this->db->prepare($sql);
+	    if(!empty($params)) {
+	        $types = str_repeat('s', count($params));
+	        $stmt->bind_param($types, ...$params);
+	    }
+	    $stmt->execute();
+	    $result = $stmt->get_result();
+
+	    $free_rooms = array();
+	    while($row = $result->fetch_assoc()) {
+	        $free_rooms[] = array(
+	            'id' => $row['id'],
+	            'name' => $row['room_name'],
+	            'type' => $row['room_type']
+	        );
+	    }
+
+	    return $free_rooms;
+	}
 }

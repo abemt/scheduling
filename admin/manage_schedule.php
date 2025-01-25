@@ -211,63 +211,79 @@ $rdata= json_decode($repeating_data);
 	})
 	
 	$('#check_free_rooms').click(function(){
-		var time_from = $('#time_from').val();
-		var time_to = $('#time_to').val();
-		var data = {
-			time_from: time_from,
-			time_to: time_to
-		};
-		
-		if($('#is_repeating').is(':checked')){
-			var dow = $('#dow').val();
-			var date_from = $('#month_from').val() + '-01';
-			var date_to = $('#month_to').val() + '-' + new Date($('#month_to').val(), 0, 0).getDate();
-			
-			data.is_repeating = 1;
-			data.dow = dow;
-			data.date_from = date_from;
-			data.date_to = date_to;
-		} else {
-			data.date = $('#schedule_date').val();
-		}
-		
-		if(!time_from || !time_to || (!data.date && (!data.date_from || !data.date_to || !data.dow))){
-			alert_toast("Please fill in all schedule details first", 'warning');
-			return;
-		}
-		
-		start_load();
-		$.ajax({
-			url: 'ajax.php?action=check_free_rooms',
-			method: 'POST',
-			data: data,
-			success: function(response){
-				var rooms = JSON.parse(response);
-				var html = '';
-				
-				if(rooms.length > 0){
-					html += '<div class="alert alert-success">Available Rooms:</div>';
-					html += '<div class="list-group">';
-					rooms.forEach(function(room){
-						html += '<a href="#" class="list-group-item list-group-item-action select-room" data-id="'+room.id+'">';
-						html += '['+room.type+'] '+room.name;
-						html += '</a>';
-					});
-					html += '</div>';
-				} else {
-					html = '<div class="alert alert-warning">No free rooms found for the selected time period.</div>';
-				}
-				
-				$('#free_rooms_result').html(html);
-				end_load();
-			},
-			error: function(err){
-				console.log(err);
-				alert_toast("An error occurred", 'error');
-				end_load();
-			}
-		});
-	});
+    var time_from = $('#time_from').val();
+    var time_to = $('#time_to').val();
+    
+    if(!time_from || !time_to) {
+        alert_toast("Please select time range first", 'warning');
+        return;
+    }
+    
+    var data = {
+        time_from: time_from,
+        time_to: time_to
+    };
+    
+    if($('#is_repeating').is(':checked')){
+        var dow = $('#dow').val();
+        var month_from = $('#month_from').val();
+        var month_to = $('#month_to').val();
+        
+        if(!dow || !month_from || !month_to) {
+            alert_toast("Please complete schedule details first", 'warning');
+            return;
+        }
+        
+        data.is_repeating = 1;
+        data.dow = dow;
+        data.date_from = month_from + '-01';
+        data.date_to = month_to + '-' + new Date(month_to.split('-')[0], month_to.split('-')[1], 0).getDate();
+    } else {
+        var schedule_date = $('#schedule_date').val();
+        if(!schedule_date) {
+            alert_toast("Please select schedule date first", 'warning');
+            return;
+        }
+        data.date = schedule_date;
+    }
+    
+    start_load();
+    $.ajax({
+        url: 'ajax.php?action=check_free_rooms',
+        method: 'POST',
+        data: data,
+        success: function(response){
+            end_load();
+            try {
+                var rooms = JSON.parse(response);
+                var html = '';
+                
+                if(rooms.length > 0){
+                    html += '<div class="alert alert-success">Available Rooms:</div>';
+                    html += '<div class="list-group">';
+                    rooms.forEach(function(room){
+                        html += '<a href="#" class="list-group-item list-group-item-action select-room" data-id="'+room.id+'">';
+                        html += '['+room.type+'] '+room.name;
+                        html += '</a>';
+                    });
+                    html += '</div>';
+                } else {
+                    html = '<div class="alert alert-warning">No free rooms found for the selected time period.</div>';
+                }
+                
+                $('#free_rooms_result').html(html);
+            } catch(e) {
+                console.error(e);
+                alert_toast("Error processing response", 'error');
+            }
+        },
+        error: function(err){
+            end_load();
+            console.error(err);
+            alert_toast("An error occurred", 'error');
+        }
+    });
+});
 
 	$(document).on('click', '.select-room', function(e){
 		e.preventDefault();
