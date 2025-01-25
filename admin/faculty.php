@@ -12,6 +12,36 @@
   transform: scale(1.5);
   padding: 10px;
 }
+
+// ...existing code...
+
+@media (max-width: 768px) {
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.875rem;
+    }
+    
+    table td, table th {
+        white-space: nowrap;
+    }
+    
+    .card-header {
+        flex-direction: column;
+    }
+    
+    .card-header button {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .table td {
+        min-width: 100px;
+    }
+    
+    .table td:last-child {
+        min-width: 120px;
+    }
+}
 </style>
 	<div class="col-lg-12">
 		<div class="row mb-4 mt-4">
@@ -34,7 +64,7 @@
 				</span>
 					</div>
 					<div class="card-body">
-						
+					    <div class="table-responsive">
 						<table class="table table-bordered table-condensed table-hover">
 							<colgroup>
 								<col width="5%">
@@ -87,6 +117,7 @@
 								<?php endwhile; ?>
 							</tbody>
 						</table>
+					    </div>
 					</div>
 				</div>
 			</div>

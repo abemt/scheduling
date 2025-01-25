@@ -138,7 +138,36 @@ a.fc-daygrid-event.fc-daygrid-dot-event.fc-event.fc-event-start.fc-event-end.fc-
 a.fc-timegrid-event.fc-v-event.fc-event.fc-event-start.fc-event-end.fc-event-past {
     cursor: pointer;
 }
+
+/* Responsive calendar */
+@media (max-width: 768px) {
+    .fc .fc-toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .fc .fc-toolbar-title {
+        font-size: 1.2em;
+    }
+    
+    .fc .fc-button-group {
+        margin: 5px 0;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .col-md-3 {
+        margin-bottom: 15px;
+    }
+    
+    #calendar {
+        height: auto !important;
+    }
+}
 </style>
+
 <script>
 	
 	$('#new_schedule').click(function(){
@@ -185,6 +214,9 @@ a.fc-timegrid-event.fc-v-event.fc-event.fc-event-start.fc-event-end.fc-event-pas
 			selectable: true,
 			nowIndicator: true,
 			dayMaxEvents: true, // allow "more" link when too many events
+			height: 'auto',
+			expandRows: true,
+			handleWindowResize: true,
 			events: []
 		});
 		calendar.render();

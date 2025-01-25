@@ -8,11 +8,18 @@
 		padding-top: 1rem;
 		min-height: 100vh;  /* Changed from calc(100vh - 60px) to 100vh */
 		box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+		position: fixed;
+		left: 0;
+		width: 250px;
+		height: 100%;
+		transition: all 0.3s ease;
+		z-index: 1040;
 	}
 
 	.sidebar-list {
 		margin-top: 60px; /* Added to offset the fixed topbar */
 		padding: 0;
+		padding-top: 70px;
 	}
 
 	.sidebar-list a {
@@ -42,12 +49,69 @@
 	@media (max-width: 768px) {
 		nav#sidebar {
 			margin-top: 0;
+			width: 60px;
+			transform: translateX(-60px);
 		}
+		
+		nav#sidebar.active {
+			transform: translateX(0);
+		}
+
+		.sidebar-list a span:not(.icon-field) {
+			display: none;
+		}
+
+		.sidebar-list a {
+			padding: 8px 5px;
+			justify-content: center;
+		}
+
+		.icon-field {
+			margin: 0;
+		}
+
+		#content {
+			margin-left: 0 !important;
+		}
+
+		#view-panel {
+			margin-left: 0 !important;
+			width: 100% !important;
+		}
+
 		.sidebar-list {
-			margin-top: 55px;
+			padding-top: 60px;
+		}
+
+		#sidebarCollapse {
+			top: 8px;
+			left: 8px;
+			z-index: 1051;
+		}
+	}
+
+	/* Toggle button for mobile */
+	#sidebarCollapse {
+		display: none;
+	}
+
+	@media (max-width: 768px) {
+		#sidebarCollapse {
+			display: block;
+			position: fixed;
+			left: 10px;
+			top: 10px;
+			z-index: 1050;
+			border: none;
+			background: transparent;
+			color: white;
 		}
 	}
 </style>
+
+<button id="sidebarCollapse" class="btn">
+	<i class="fa fa-bars"></i>
+</button>
 
 <nav id="sidebar" class='mx-lt-5 bg-dark' >
 		
@@ -69,4 +133,9 @@
 		$($(this).attr('href')).collapse()
 	})
 	$('.nav-<?php echo isset($_GET['page']) ? $_GET['page'] : '' ?>').addClass('active')
+
+	// Add mobile sidebar toggle
+	$('#sidebarCollapse').click(function() {
+		$('#sidebar').toggleClass('active');
+	});
 </script>

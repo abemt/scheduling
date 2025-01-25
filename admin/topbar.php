@@ -128,6 +128,45 @@
     width: 40px;
     height: 40px;
   }
+
+  .navbar {
+    padding: 0.3rem;
+  }
+
+  .brand-section {
+    margin-left: 50px; /* Make room for sidebar toggle */
+  }
+
+  .logo-container {
+    gap: 0.4rem;
+  }
+
+  .logo-img {
+    width: 35px;
+    height: 35px;
+  }
+
+  .system-name {
+    font-size: 0.9rem;
+  }
+
+  .sub-title, 
+  .user-dropdown span:not(.fa) {
+    display: none;
+  }
+
+  .user-dropdown {
+    padding: 0.3rem 0.6rem;
+  }
+
+  .dropdown-toggle {
+    gap: 0;
+  }
+
+  .dropdown-menu {
+    left: auto !important;
+    right: 0 !important;
+  }
 }
 </style>
 

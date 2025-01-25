@@ -19,9 +19,41 @@
 
 </head>
 <style>
-	body{
-        background: #80808045;
-  }
+	body {
+		background: #80808045;
+		overflow-x: hidden;
+		width: 100%;
+		position: relative;
+	}
+
+	#view-panel {
+		margin-left: 250px;
+		transition: all 0.3s ease;
+		padding: 15px;
+		width: calc(100% - 250px);
+	}
+
+	@media (max-width: 768px) {
+		#view-panel {
+			margin-left: 0;
+			padding: 10px 5px;
+			width: 100%;
+			padding-top: 65px;
+		}
+
+		.modal-dialog {
+			margin: 5px;
+			padding: 0;
+		}
+
+		.modal-content {
+			border-radius: 0;
+		}
+		
+		.container-fluid {
+			padding: 0;
+		}
+	}
   .modal-dialog.large {
     width: 80% !important;
     max-width: unset;
