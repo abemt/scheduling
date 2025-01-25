@@ -55,17 +55,25 @@ $rdata= json_decode($repeating_data);
 					</div>
 					<div class="form-group">
 						<label for="" class="control-label">Room</label>
-						<select name="room_id" id="room_id" class="custom-select select2" required>
-							<option value="">Select Room</option>
-							<?php 
-							$rooms = $conn->query("SELECT * FROM rooms ORDER BY room_type, room_name");
-							while($row = $rooms->fetch_array()):
-							?>
-							<option value="<?php echo $row['id'] ?>" <?php echo isset($room_id) && $room_id == $row['id'] ? 'selected' : '' ?>>
-								<?php echo "[".ucwords($row['room_type'])."] ".$row['room_name'] ?>
-							</option>
-							<?php endwhile; ?>
-						</select>
+						<div class="input-group">
+							<select name="room_id" id="room_id" class="custom-select select2" required>
+								<option value="">Select Room</option>
+								<?php 
+								$rooms = $conn->query("SELECT * FROM rooms ORDER BY room_type, room_name");
+								while($row = $rooms->fetch_array()):
+								?>
+								<option value="<?php echo $row['id'] ?>" <?php echo isset($room_id) && $room_id == $row['id'] ? 'selected' : '' ?>>
+									<?php echo "[".ucwords($row['room_type'])."] ".$row['room_name'] ?>
+								</option>
+								<?php endwhile; ?>
+							</select>
+							<div class="input-group-append">
+								<button class="btn btn-success" type="button" id="check_free_rooms">
+									<i class="fa fa-search"></i> Find Free Rooms
+								</button>
+							</div>
+						</div>
+						<div id="free_rooms_result" class="mt-2"></div>
 					</div>
 					<div class="form-group">
 						<label for="course_id" class="control-label">Course</label>
@@ -204,4 +212,69 @@ $rdata= json_decode($repeating_data);
 		})
 	})
 	
+	$('#check_free_rooms').click(function(){
+		var time_from = $('#time_from').val();
+		var time_to = $('#time_to').val();
+		var data = {
+			time_from: time_from,
+			time_to: time_to
+		};
+		
+		if($('#is_repeating').is(':checked')){
+			var dow = $('#dow').val();
+			var date_from = $('#month_from').val() + '-01';
+			var date_to = $('#month_to').val() + '-' + new Date($('#month_to').val(), 0, 0).getDate();
+			
+			data.is_repeating = 1;
+			data.dow = dow;
+			data.date_from = date_from;
+			data.date_to = date_to;
+		} else {
+			data.date = $('#schedule_date').val();
+		}
+		
+		if(!time_from || !time_to || (!data.date && (!data.date_from || !data.date_to || !data.dow))){
+			alert_toast("Please fill in all schedule details first", 'warning');
+			return;
+		}
+		
+		start_load();
+		$.ajax({
+			url: 'ajax.php?action=check_free_rooms',
+			method: 'POST',
+			data: data,
+			success: function(response){
+				var rooms = JSON.parse(response);
+				var html = '';
+				
+				if(rooms.length > 0){
+					html += '<div class="alert alert-success">Available Rooms:</div>';
+					html += '<div class="list-group">';
+					rooms.forEach(function(room){
+						html += '<a href="#" class="list-group-item list-group-item-action select-room" data-id="'+room.id+'">';
+						html += '['+room.type+'] '+room.name;
+						html += '</a>';
+					});
+					html += '</div>';
+				} else {
+					html = '<div class="alert alert-warning">No free rooms found for the selected time period.</div>';
+				}
+				
+				$('#free_rooms_result').html(html);
+				end_load();
+			},
+			error: function(err){
+				console.log(err);
+				alert_toast("An error occurred", 'error');
+				end_load();
+			}
+		});
+	});
+
+	$(document).on('click', '.select-room', function(e){
+		e.preventDefault();
+		var room_id = $(this).data('id');
+		$('#room_id').val(room_id).trigger('change');
+		$('#free_rooms_result').html('');
+	});
 </script>

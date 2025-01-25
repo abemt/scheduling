@@ -105,6 +105,10 @@ if($action == "filter_schedules"){
     $get = $crud->filter_schedules();
     echo json_encode($get);
 }
+if($action == "check_free_rooms"){
+    $get = $crud->check_free_rooms();
+    echo json_encode($get);
+}
 if($action == "delete_forum"){
 	$save = $crud->delete_forum();
 	if($save)
