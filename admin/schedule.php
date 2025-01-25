@@ -52,7 +52,7 @@
 									<select class="form-control select2" id="faculty_search">
 										<option value="">All Faculty</option>
 										<?php 
-										$faculty = $conn->query("SELECT *, CONCAT(firstname, ' ', lastname) as name FROM faculty ORDER BY lastname ASC");
+										$faculty = $conn->query("SELECT *, concat(firstname,' ',lastname) as name FROM faculty order by concat(firstname,' ',lastname) asc");
 										while($row = $faculty->fetch_assoc()):
 										?>
 										<option value="<?php echo $row['id'] ?>"><?php echo $row['name'] ?></option>

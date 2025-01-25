@@ -21,12 +21,12 @@ if(isset($_GET['id'])){
 		</div>
 		<div class="row form-group">
 			<div class="col-md-4">
-				<label class="control-label">Last Name</label>
-				<input type="text" name="lastname" class="form-control" value="<?php echo isset($lastname) ? $lastname:'' ?>" required>
-			</div>
 			<div class="col-md-4">
 				<label class="control-label">First Name</label>
 				<input type="text" name="firstname" class="form-control" value="<?php echo isset($firstname) ? $firstname:'' ?>" required>
+			</div>
+				<label class="control-label">Last Name</label>
+				<input type="text" name="lastname" class="form-control" value="<?php echo isset($lastname) ? $lastname:'' ?>" required>
 			</div>
 			<div class="col-md-4">
 				<label class="control-label">Middle Name</label>
