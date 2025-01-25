@@ -68,6 +68,34 @@ $rdata= json_decode($repeating_data);
 						</select>
 					</div>
 					<div class="form-group">
+						<label for="course_id" class="control-label">Course</label>
+						<select name="course_id" id="course_id" class="custom-select select2" required>
+							<option value="">Select Course</option>
+							<?php 
+							$courses = $conn->query("SELECT * FROM courses ORDER BY course ASC");
+							while($row = $courses->fetch_array()):
+							?>
+							<option value="<?php echo $row['id'] ?>" <?php echo isset($course_id) && $course_id == $row['id'] ? 'selected' : '' ?>>
+								<?php echo $row['course'] ?>
+							</option>
+							<?php endwhile; ?>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="subject_id" class="control-label">Subject</label>
+						<select name="subject_id" id="subject_id" class="custom-select select2" required>
+							<option value="">Select Subject</option>
+							<?php 
+							$subjects = $conn->query("SELECT * FROM subjects ORDER BY subject ASC");
+							while($row = $subjects->fetch_array()):
+							?>
+							<option value="<?php echo $row['id'] ?>" <?php echo isset($subject_id) && $subject_id == $row['id'] ? 'selected' : '' ?>>
+								<?php echo $row['subject'] ?>
+							</option>
+							<?php endwhile; ?>
+						</select>
+					</div>
+					<div class="form-group">
 						<div class="form-check">
 						  <input class="form-check-input" type="checkbox" value="1" id="is_repeating" name="is_repeating" <?php echo isset($is_repeating) && $is_repeating != 1 ? '' : 'checked' ?>>
 						  <label class="form-check-label" for="type">

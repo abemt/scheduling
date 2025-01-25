@@ -101,6 +101,10 @@ if($action == "get_schecdule"){
 	if($get)
 		echo $get;
 }
+if($action == "filter_schedules"){
+    $get = $crud->filter_schedules();
+    echo json_encode($get);
+}
 if($action == "delete_forum"){
 	$save = $crud->delete_forum();
 	if($save)

@@ -17,18 +17,72 @@
 				</button></span>
 					</div>
 					<div class="card-body">
-						<div class="row">
-							<label for="" class="control-label col-md-2 offset-md-2">View Schedule of:</label>
-							<div class=" col-md-4">
-							<select name="faculty_id" id="faculty_id" class="custom-select select2">
-								<option value=""></option>
-							<?php 
-								$faculty = $conn->query("SELECT *, concat(firstname,' ',lastname) as name FROM faculty order by concat(firstname,' ',lastname) asc");
-								while($row= $faculty->fetch_array()):
-							?>
-								<option value="<?php echo $row['id'] ?>"><?php echo ucwords($row['name']) ?></option>
-							<?php endwhile; ?>
-							</select>
+						<div class="row mb-4">
+							<div class="col-md-3">
+								<div class="form-group">
+									<label for="course_filter">Course:</label>
+									<select class="form-control select2" id="course_filter">
+										<option value="">All Courses</option>
+										<?php 
+										$courses = $conn->query("SELECT * FROM courses ORDER BY course ASC");
+										while($row = $courses->fetch_assoc()):
+										?>
+										<option value="<?php echo $row['id'] ?>"><?php echo $row['course'] ?></option>
+										<?php endwhile; ?>
+									</select>
+								</div>
+							</div>
+							<div class="col-md-3">
+								<div class="form-group">
+									<label for="subject_filter">Subject:</label>
+									<select class="form-control select2" id="subject_filter">
+										<option value="">All Subjects</option>
+										<?php 
+										$subjects = $conn->query("SELECT * FROM subjects ORDER BY subject ASC");
+										while($row = $subjects->fetch_assoc()):
+										?>
+										<option value="<?php echo $row['id'] ?>"><?php echo $row['subject'] ?></option>
+										<?php endwhile; ?>
+									</select>
+								</div>
+							</div>
+							<div class="col-md-3">
+								<div class="form-group">
+									<label for="faculty_search">Faculty:</label>
+									<select class="form-control select2" id="faculty_search">
+										<option value="">All Faculty</option>
+										<?php 
+										$faculty = $conn->query("SELECT *, CONCAT(firstname, ' ', lastname) as name FROM faculty ORDER BY lastname ASC");
+										while($row = $faculty->fetch_assoc()):
+										?>
+										<option value="<?php echo $row['id'] ?>"><?php echo $row['name'] ?></option>
+										<?php endwhile; ?>
+									</select>
+								</div>
+							</div>
+							<div class="col-md-3">
+								<div class="form-group">
+									<label for="room_filter">Room:</label>
+									<select class="form-control select2" id="room_filter">
+										<option value="">All Rooms</option>
+										<?php 
+										$rooms = $conn->query("SELECT * FROM rooms ORDER BY room_type, room_name ASC");
+										while($row = $rooms->fetch_assoc()):
+										?>
+										<option value="<?php echo $row['id'] ?>"><?php echo "[".ucwords($row['room_type'])."] ".$row['room_name'] ?></option>
+										<?php endwhile; ?>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="row mb-4">
+							<div class="col-md-12">
+								<button class="btn btn-primary" id="apply_filters">
+									<i class="fa fa-search"></i> Apply Filters
+								</button>
+								<button class="btn btn-secondary" id="reset_filters">
+									<i class="fa fa-refresh"></i> Reset
+								</button>
 							</div>
 						</div>
 						<hr>
@@ -115,91 +169,82 @@ a.fc-timegrid-event.fc-v-event.fc-event.fc-event-start.fc-event-end.fc-event-pas
 			}
 		})
 	}
-	 var calendarEl = document.getElementById('calendar');
-    var calendar;
+	var calendarEl = document.getElementById('calendar');
+	var calendar;
 	document.addEventListener('DOMContentLoaded', function() {
-   
+		calendar = new FullCalendar.Calendar(calendarEl, {
+			headerToolbar: {
+				left: 'prev,next today',
+				center: 'title',
+				right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+			},
+			initialDate: '<?php echo date('Y-m-d') ?>',
+			weekNumbers: true,
+			navLinks: true, // can click day/week names to navigate views
+			editable: false,
+			selectable: true,
+			nowIndicator: true,
+			dayMaxEvents: true, // allow "more" link when too many events
+			events: []
+		});
+		calendar.render();
+	});
 
-        calendar = new FullCalendar.Calendar(calendarEl, {
-          headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
-          },
-          initialDate: '<?php echo date('Y-m-d') ?>',
-          weekNumbers: true,
-          navLinks: true, // can click day/week names to navigate views
-          editable: false,
-          selectable: true,
-          nowIndicator: true,
-          dayMaxEvents: true, // allow "more" link when too many events
-          // showNonCurrentDates: false,
-          events: []
-        });
-        calendar.render();
-     
+	// Handle filter application
+	$('#apply_filters').click(function(){
+		filterSchedules();
+	});
 
-  });
-	$('#faculty_id').change(function(){
-		 calendar.destroy()
-		 start_load()
-		 $.ajax({
-		 	url:'ajax.php?action=get_schecdule',
-		 	method:'POST',
-		 	data:{faculty_id: $(this).val()},
-		 	success:function(resp){
-		 		if(resp){
-		 			resp = JSON.parse(resp)
-		 					var evt = [] ;
-		 			if(resp.length > 0){
-		 					Object.keys(resp).map(k=>{
-		 						var obj = {};
-		 							obj['title']=resp[k].title
-		 							obj['data_id']=resp[k].id
-		 							obj['data_location']=resp[k].location
-		 							obj['data_description']=resp[k].description
-		 							if(resp[k].is_repeating == 1){
-		 							obj['daysOfWeek']=resp[k].dow
-		 							obj['startRecur']=resp[k].start
-		 							obj['endRecur']=resp[k].end
-									obj['startTime']=resp[k].time_from
-		 							obj['endTime']=resp[k].time_to
-		 							}else{
+	// Handle filter reset
+	$('#reset_filters').click(function(){
+		$('#course_filter, #subject_filter, #faculty_search, #room_filter').val('').trigger('change.select2');
+		filterSchedules();
+	});
 
-		 							obj['start']=resp[k].schedule_date+'T'+resp[k].time_from;
-		 							obj['end']=resp[k].schedule_date+'T'+resp[k].time_to;
-		 							}
-		 							
-		 							evt.push(obj)
-		 					})
-							 console.log(evt)
+	function filterSchedules() {
+		start_load();
+		$.ajax({
+			url: 'ajax.php?action=filter_schedules',
+			method: 'POST',
+			data: {
+				course_id: $('#course_filter').val(),
+				subject_id: $('#subject_filter').val(),
+				faculty_id: $('#faculty_search').val(),
+				room_id: $('#room_filter').val()  // Add room filter
+			},
+			success: function(response){
+				try {
+					var events = JSON.parse(response);
+					calendar.removeAllEvents();
+					calendar.addEventSource(events);
+					end_load();
+				} catch(e) {
+					console.error('Error parsing response:', e);
+					alert_toast("Error applying filters", 'error');
+					end_load();
+				}
+			},
+			error: function(err){
+				console.error('AJAX error:', err);
+				alert_toast("An error occurred", 'error');
+				end_load();
+			}
+		});
+	}
 
-		 		}
-		 				  calendar = new FullCalendar.Calendar(calendarEl, {
-				          headerToolbar: {
-				            left: 'prev,next today',
-				            center: 'title',
-				            right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
-				          },
-				          initialDate: '<?php echo date('Y-m-d') ?>',
-				          weekNumbers: true,
-				          navLinks: true,
-				          editable: false,
-				          selectable: true,
-				          nowIndicator: true,
-				          dayMaxEvents: true, 
-				          events: evt,
-				          eventClick: function(e,el) {
-							   var data =  e.event.extendedProps;
-								uni_modal('View Schedule Details','view_schedule.php?id='+data.data_id,'mid-large')
+	$(document).ready(function(){
+		// Initialize calendar with all events
+		filterSchedules();
+		
+		// Initialize select2
+		$('.select2').select2({
+			placeholder: "Select an option",
+			allowClear: true
+		});
 
-							  }
-				        });
-		 	}
-		 	},complete:function(){
-		 		calendar.render()
-		 		end_load()
-		 	}
-		 })
-	})
+		// Handle filter changes
+		$('#course_filter, #subject_filter, #faculty_search, #room_filter').change(function(){
+			filterSchedules();
+		});
+	});
 </script>
