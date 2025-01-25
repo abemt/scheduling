@@ -134,7 +134,6 @@
 				<a href="index.php?page=users" class="nav-item nav-users"><span class='icon-field'><i class="fa fa-users"></i></span> Users</a>
 			<?php endif; ?>
 		</div>
-
 </nav>
 <script>
 	$('.nav_collapse').click(function(){

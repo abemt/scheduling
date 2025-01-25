@@ -16,8 +16,6 @@ $rdata= json_decode($repeating_data);
 }
 ?>
 <style>
-	
-	
 </style>
 <div class="container-fluid">
 	<form action="" id="manage-schedule">
